@@ -1,6 +1,11 @@
 use actix_web::{post, HttpResponse, HttpServer, App, Responder};
 use std::io::Result;
 
+struct User {
+    username: String,
+    password: String,
+}
+
 #[post("/login")]
 async fn login(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
