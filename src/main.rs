@@ -1,10 +1,7 @@
-use actix_web::{post, HttpResponse, HttpServer, App, Responder};
-use std::io::Result;
+mod user_info;
 
-struct User {
-    username: String,
-    password: String,
-}
+use actix_web::{App, HttpResponse, HttpServer, Responder, post};
+use std::io::Result;
 
 #[post("/login")]
 async fn login(req_body: String) -> impl Responder {
@@ -23,13 +20,8 @@ async fn images(req_body: String) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> Result<()> {
-   HttpServer::new(|| {
-        App::new()
-            .service(login)
-            .service(images)
-            .service(register)
-    }) 
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    HttpServer::new(|| App::new().service(login).service(images).service(register))
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }
