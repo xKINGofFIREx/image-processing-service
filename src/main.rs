@@ -1,16 +1,24 @@
 mod user_info;
 
-use actix_web::{App, HttpResponse, HttpServer, Responder, post};
+use actix_web::{http::header::ContentType, post, web, App, HttpResponse, HttpServer, Responder};
 use std::io::Result;
+use user_info::User;
 
 #[post("/login")]
-async fn login(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
+async fn login(_: web::Json<User>) -> impl Responder {
+    HttpResponse::Ok()
 }
 
 #[post("/register")]
-async fn register(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
+async fn register(req: web::Json<User>) -> impl Responder {
+    let _new_user = User {
+        username: String::from(&req.username),
+        password: String::from(&req.password),
+    };
+
+    HttpResponse::Created()
+        .content_type(ContentType::json())
+        .body("Sucessfully registered")
 }
 
 #[post("/images")]
