@@ -5,8 +5,15 @@ use std::io::Result;
 use user_info::User;
 
 #[post("/login")]
-async fn login(_: web::Json<User>) -> impl Responder {
+async fn login(req: web::Json<User>) -> impl Responder {
+    let _user = User {
+        username: String::from(&req.username),
+        password: String::from(&req.password),
+    };
+
     HttpResponse::Ok()
+        .content_type(ContentType::json())
+        .body("Login sucessful")
 }
 
 #[post("/register")]
