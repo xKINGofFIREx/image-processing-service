@@ -1,4 +1,5 @@
 mod user_info;
+mod image_transform;
 
 use actix_web::{http::header::ContentType, post, web, App, HttpResponse, HttpServer, Responder};
 use std::io::Result;
