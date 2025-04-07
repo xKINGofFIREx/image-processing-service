@@ -1,7 +1,8 @@
-mod user_info;
 mod image_transform;
+mod user_info;
 
-use actix_web::{http::header::ContentType, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, HttpResponse, HttpServer, Responder, http::header::ContentType, post, web};
+use image_transform::Transformation;
 use std::io::Result;
 use user_info::User;
 
@@ -32,6 +33,12 @@ async fn register(req: web::Json<User>) -> impl Responder {
 #[post("/images")]
 async fn images(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
+}
+
+#[post("/images/:id/transform")]
+async fn transform_image(req: web::Json<Transformation>) -> impl Responder {
+    let transformation: Transformation = req.0;
+    HttpResponse::Ok().body(transformation.to_string())
 }
 
 #[actix_web::main]

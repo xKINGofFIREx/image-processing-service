@@ -1,36 +1,43 @@
 use serde::{Deserialize, Serialize};
+use std::string::ToString;
 
-#[derive(Deserialize,Serialize)]
-pub struct Transformations {
-    resize: Resize,
-    crop: Crop,
-    rotate: Rotate,
-    format: Format,
-    filters: Filters,
+#[derive(Debug, Deserialize,Serialize)]
+pub struct Transformation {
+    pub resize: Resize,
+    pub crop: Crop,
+    pub rotate: Rotate,
+    pub format: Format,
+    pub filters: Filters,
 }
 
-#[derive(Deserialize,Serialize)]
+#[derive(Debug, Deserialize,Serialize)]
 pub struct Resize {
-    width: i32,
-    height: i32,
+    pub width: i32,
+    pub height: i32,
 }
 
-#[derive(Deserialize,Serialize)]
+#[derive(Debug, Deserialize,Serialize)]
 pub struct Crop {
-    width: i32,
-    height: i32,
-    x: i32,
-    y: i32,
+    pub width: i32,
+    pub height: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
-#[derive(Deserialize,Serialize)]
+#[derive(Debug, Deserialize,Serialize)]
 pub struct Rotate(i32);
 
-#[derive(Deserialize,Serialize)]
+#[derive(Debug, Deserialize,Serialize)]
 pub struct Format(String);
 
-#[derive(Deserialize,Serialize)]
+#[derive(Debug, Deserialize,Serialize)]
 pub struct Filters {
-    grayscale: bool,
-    sepia: bool,
+    pub grayscale: bool,
+    pub sepia: bool,
+}
+
+impl ToString for Transformation {
+    fn to_string(&self) -> String {
+        format!("{:?}", self)    
+    }
 }
