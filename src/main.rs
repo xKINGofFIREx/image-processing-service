@@ -1,33 +1,63 @@
 mod image_transform;
-mod user_info;
 
-use actix_web::{App, HttpResponse, HttpServer, Responder, http::header::ContentType, post, web};
+use actix_web::cookie::{Cookie, SameSite};
+use actix_web::{App, HttpResponse, HttpServer, Responder, post, web};
 use image_transform::Transformation;
+use std::collections::HashMap;
 use std::io::Result;
-use user_info::User;
+use std::sync::{Arc, Mutex};
+
+struct AppData {
+    users: Arc<Mutex<HashMap<String, String>>>,
+    sessions: Arc<Mutex<HashMap<String, String>>>,
+}
 
 #[post("/login")]
-async fn login(req: web::Json<User>) -> impl Responder {
-    let _user = User {
-        username: String::from(&req.username),
-        password: String::from(&req.password),
-    };
+async fn login(
+    data: web::Data<AppData>,
+    form: web::Form<HashMap<String, String>>,
+) -> impl Responder {
+    let username = form.get("username").unwrap();
+    let password = form.get("password").unwrap();
 
-    HttpResponse::Ok()
-        .content_type(ContentType::json())
-        .body("Login sucessful")
+    let users = data.users.lock().unwrap();
+
+    match users.get(username) {
+        Some(stored_password) if stored_password == password => {
+            let mut sessions = data.sessions.lock().unwrap();
+            let session_id = uuid::Uuid::new_v4().to_string();
+
+            sessions.insert(session_id.clone(), username.clone());
+
+            let cookie = Cookie::build("session_id", session_id)
+                .same_site(SameSite::Lax)
+                .finish();
+
+            HttpResponse::Ok()
+                .cookie(cookie)
+                .body("Wrong username or password")
+        }
+        _ => HttpResponse::BadRequest().body("Wrong username or password"),
+    }
 }
 
 #[post("/register")]
-async fn register(req: web::Json<User>) -> impl Responder {
-    let _new_user = User {
-        username: String::from(&req.username),
-        password: String::from(&req.password),
-    };
+async fn register(
+    data: web::Data<AppData>,
+    form: web::Form<HashMap<String, String>>,
+) -> impl Responder {
+    let username = form.get("username").unwrap();
+    let password = form.get("password").unwrap();
 
-    HttpResponse::Created()
-        .content_type(ContentType::json())
-        .body("Sucessfully registered")
+    let mut users = data.users.lock().unwrap();
+
+    if users.contains_key(username) {
+        return HttpResponse::BadRequest().body("This username exists");
+    }
+
+    users.insert(username.clone(), password.clone());
+
+    HttpResponse::Ok().body("Successfully registered")
 }
 
 #[post("/images")]
@@ -43,8 +73,20 @@ async fn transform_image(req: web::Json<Transformation>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> Result<()> {
-    HttpServer::new(|| App::new().service(login).service(images).service(register))
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+    let data = web::Data::new({
+        AppData {
+            users: Arc::new(Mutex::new(HashMap::new())),
+            sessions: Arc::new(Mutex::new(HashMap::new())),
+        }
+    });
+    HttpServer::new(move || {
+        App::new()
+            .app_data(data.clone())
+            .service(login)
+            .service(images)
+            .service(register)
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
