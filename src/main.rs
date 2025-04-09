@@ -6,10 +6,19 @@ use image_transform::Transformation;
 use std::collections::HashMap;
 use std::io::Result;
 use std::sync::{Arc, Mutex};
+use serde::Serialize;
 
 struct AppData {
     users: Arc<Mutex<HashMap<String, String>>>,
     sessions: Arc<Mutex<HashMap<String, String>>>,
+}
+
+#[derive(Serialize)]
+struct ImageResponse {
+    url: String, 
+    file_name: String, 
+    file_size: usize,
+    content_type: String,
 }
 
 #[post("/login")]
